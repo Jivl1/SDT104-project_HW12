@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDT104 – HW12 Closures in JS</title>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #161b24;
+      --border: #252d3d;
+      --accent: #4f8ef7;
+      --accent2: #34d399;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --code-bg: #1e2535;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --font: 'IBM Plex Sans', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0d1520 0%, #111827 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    header h1 span { color: var(--accent); }
+    header p { color: var(--muted); margin-top: .4rem; font-size: .95rem; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .task {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .task-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-num {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: .8rem;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .task-header h2 { font-size: 1rem; font-weight: 600; color: #fff; }
+    .task-body { padding: 1.5rem; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      padding: .45rem 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    button:hover { background: var(--accent); color: #fff; }
+    button.green { border-color: var(--accent2); color: var(--accent2); }
+    button.green:hover { background: var(--accent2); color: #0d0f14; }
+
+    .console {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      min-height: 80px;
+      max-height: 320px;
+      overflow-y: auto;
+      color: #a9c7ff;
+    }
+    .console .line { padding: 1px 0; }
+    .console .line.warn { color: #fbbf24; }
+    .console .line.error { color: #f87171; }
+    .console .line.ok { color: var(--accent2); }
+    .console .line.info { color: #c4b5fd; }
+    .console .prompt { color: var(--muted); margin-right: .5rem; user-select: none; }
+
+    .explain {
+      background: #111827;
+      border-left: 3px solid var(--accent);
+      padding: .85rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin-top: 1.25rem;
+      font-size: .86rem;
+      color: var(--muted);
+    }
+    .explain strong { color: var(--text); }
+    .explain code {
+      background: var(--code-bg);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      color: #f9c86e;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>SDT 104 &nbsp;—&nbsp; Homework 12 <span>Closures in JS</span></h1>
+</header>
+
+<main>
+
+  <div class="task">
+    <div class="task-header">
+      <div class="task-num">1</div>
+      <h2>Function Declarations vs Expressions + Hoisting</h2>
+    </div>
+    <div class="task-body">
+      <div class="btn-row">
+        <button onclick="runArea('circle', 10)">calculateArea("circle", 10)</button>
+        <button onclick="runArea('square', 7)">calculateArea("square", 7)</button>
+        <button onclick="runPerimeter('circle', 10)">calculatePerimeter("circle", 10)</button>
+        <button onclick="runPerimeter('square', 5)">calculatePerimeter("square", 5)</button>
+        <button class="green" onclick="runHoistDemo()">Hoisting demo</button>
+      </div>
+      <div class="console" id="con1"><span style="color:#4b5563">Click a button to see output</span></div>
+      <div class="explain">
+        <strong>Function declaration</strong> (<code>calculateArea</code>) is hoisted — available before its line.<br>
+        <strong>Function expression</strong> (<code>calculatePerimeter</code>, <code>getCalculation</code>) are <code>const</code> — they stay in the <strong>Temporal Dead Zone</strong> until their line executes, so calling them before their definition throws a <code>ReferenceError</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-header">
+      <div class="task-num">2</div>
+      <h2>Closures &amp; Arrow Functions</h2>
+    </div>
+    <div class="task-body">
+      <div class="btn-row">
+        <button onclick="tickRegular()">tick() — regular counter</button>
+        <button onclick="tickArrow()">tick() — arrow counter</button>
+        <button class="green" onclick="resetCounters()">Reset both counters</button>
+      </div>
+      <div class="console" id="con2"><span style="color:#4b5563">Each click increments an independent counter</span></div>
+      <div class="explain">
+        Both versions <strong>close over</strong> the <code>count</code> variable — the inner function remembers the outer scope even after <code>createCounter()</code> has returned.<br>
+        For plain variable capture the behaviour of <strong>regular vs arrow</strong> functions is identical.
+        The difference only matters for <code>this</code>: arrow functions have no own <code>this</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-header">
+      <div class="task-num">3</div>
+      <h2>Scope, Parameters, and <code>this</code> Binding</h2>
+    </div>
+    <div class="task-body">
+      <div class="btn-row">
+        <button onclick="demoGreet()">greetUser() default</button>
+        <button onclick="demoGreetName()">greetUser("Olena")</button>
+        <button onclick="demoThis()">this — regular vs arrow</button>
+        <button class="green" onclick="demoVarLet()">var vs let scope</button>
+      </div>
+      <div class="console" id="con3"><span style="color:#4b5563">Click a button to run a demo</span></div>
+      <div class="explain">
+        <strong>Default parameters</strong>: <code>name = "Guest"</code> is used when no argument is passed.<br>
+        <strong>Regular method</strong>: <code>this</code> is bound dynamically — it's the object that called the method.<br>
+        <strong>Arrow method</strong>: <code>this</code> is inherited from the enclosing lexical scope (here, global/module), so <code>this.name</code> is <code>undefined</code>.<br>
+        <strong><code>var</code></strong> is function-scoped and leaks outside the loop block. <strong><code>let</code></strong> is block-scoped and disappears after the loop.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="task1.js"></script>
+<script src="task2.js"></script>
+<script src="task3.js"></script>
+
+<script>
+function log(consoleId, text, cls = "") {
+  const con = document.getElementById(consoleId);
+  if (con.querySelector("span")) con.innerHTML = "";
+  const line = document.createElement("div");
+  line.className = "line " + cls;
+  line.innerHTML = `<span class="prompt">&gt;</span>${text}`;
+  con.appendChild(line);
+  con.scrollTop = con.scrollHeight;
+}
+
+function runArea(shape, value) {
+  const r = calculateArea(shape, value);
+  log("con1", `calculateArea("${shape}", ${value}) → ${r !== null ? r.toFixed(4) : "null"}`, "ok");
+}
+function runPerimeter(shape, value) {
+  const r = calculatePerimeter(shape, value);
+  log("con1", `calculatePerimeter("${shape}", ${value}) → ${r !== null ? r.toFixed(4) : "null"}`, "ok");
+}
+function runHoistDemo() {
+  const con = document.getElementById("con1");
+  con.innerHTML = "";
+  log("con1", "Calling getCalculation('area')('circle',10) — works after definition:", "info");
+  log("con1", `→ ${getCalculation("area")("circle", 10).toFixed(4)}`, "ok");
+  log("con1", "Before definition: getCalculation throws ReferenceError (see page-load console log)", "warn");
+  log("con1", "calculateArea is a declaration — it was hoisted ✔", "ok");
+  log("con1", "calculatePerimeter / getCalculation are const expressions — NOT hoisted ✗", "warn");
+}
+
+let regularCounter = window._task2.createCounter(0);
+let arrowCounter = window._task2.createCounterArrow(0);
+
+function tickRegular() {
+  const value = regularCounter();
+  log("con2", `Regular counter → ${value}`, "ok");
+}
+function tickArrow() {
+  const value = arrowCounter();
+  log("con2", `Arrow counter → ${value}`, "info");
+}
+function resetCounters() {
+  regularCounter = window._task2.createCounter(0);
+  arrowCounter = window._task2.createCounterArrow(0);
+  log("con2", "Both counters reset to 0", "warn");
+}
+
+function demoGreet() {
+  log("con3", `greetUser() → ${window._task3.greetUser()}`, "ok");
+}
+function demoGreetName() {
+  log("con3", `greetUser("Olena") → ${window._task3.greetUser("Olena")}`, "ok");
+}
+function demoThis() {
+  const con = document.getElementById("con3");
+  con.innerHTML = "";
+  const { user } = window._task3;
+  log("con3", `regular sayHi → ${user.sayHiRegular()}`, "ok");
+  log("con3", `arrow sayHi → ${user.sayHiArrow()}`, "warn");
+}
+function demoVarLet() {
+  const con = document.getElementById("con3");
+  con.innerHTML = "";
+  for (var i = 0; i < 3; i++) {}
+  log("con3", `var i after loop: ${i}`, "warn");
+  for (let j = 0; j < 3; j++) {}
+  try {
+    log("con3", `let j after loop: ${j}`, "warn");
+  } catch (error) {
+    log("con3", `let j after loop: ${error.message}`, "ok");
+  }
+  log("con3", "var in setTimeout:", "warn");
+  for (var k = 0; k < 3; k++) {
+    setTimeout(() => log("con3", `var k = ${k}`, "warn"), k * 30);
+  }
+  log("con3", "let in setTimeout:", "ok");
+  for (let m = 0; m < 3; m++) {
+    setTimeout(() => log("con3", `let m = ${m}`, "ok"), m * 30 + 120);
+  }
+}
+</script>
+</body>
+</html>
